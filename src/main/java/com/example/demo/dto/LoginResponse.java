@@ -5,14 +5,16 @@ public class LoginResponse {
     private Long userId;
     private String username;
     private String message;
+    private String token;
 
     public LoginResponse() {
     }
 
-    public LoginResponse(Long userId, String username, String message) {
+    public LoginResponse(Long userId, String username, String message, String token) {
         this.userId = userId;
         this.username = username;
         this.message = message;
+        this.token = token;
     }
 
     public Long getUserId() {
@@ -32,5 +34,12 @@ public class LoginResponse {
     }
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getToken() {
+        return token;
+    }
+    public void setToken(String token) {
+        this.token = token;
     }
 }
