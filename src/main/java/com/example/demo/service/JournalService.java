@@ -1,8 +1,11 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.JournalRequest;
+import com.example.demo.dto.JournalResponse;
 import com.example.demo.entity.JournalEntry;
 import com.example.demo.entity.User;
+import com.example.demo.exception.BadRequestException;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.JournalRepository;
 import com.example.demo.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -21,7 +24,7 @@ public class JournalService {
         this.userRepository = userRepository;
     }
 
-    public JournalEntry createEntry(Long userId, JournalRequest request) {
+    public JournalResponse createEntry(Long userId, JournalRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new RuntimeException("User not found"));
 
@@ -31,32 +34,83 @@ public class JournalService {
         entry.setCreatedAt(LocalDateTime.now());
         entry.setUser(user);
 
-        return journalRepository.save(entry);
+        JournalEntry savedEntry = journalRepository.save(entry);
+        return mapToResponse(savedEntry);
     }
 
-    public List<JournalEntry> getAllEntriesByUser(Long userId) {
-        return journalRepository.findByUserId(userId);
+    public List<JournalResponse> getAllEntriesByUser(Long userId) {
+        return journalRepository.findByUserId(userId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
-    public JournalEntry getEntryById(Long userId, Long journalId) {
-        return journalRepository.findByIdAndUserId(journalId, userId).orElseThrow(() ->
-                new RuntimeException("Journal not found for this user"));
+    public JournalResponse getEntryById(Long userId, Long journalId) {
+        if (userId == null) {
+            throw new BadRequestException("User ID must not be null");
+        }
+        if (journalId == null) {
+            throw new BadRequestException("Journal ID must not be null");
+        }
+        JournalEntry entry = journalRepository.findByIdAndUserId(journalId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Journal not found for this user"));
+                //orElseThrow(() -> new RuntimeException("Journal not found for this user"));
+
+        return mapToResponse(entry);
     }
 
-    public JournalEntry updateEntry(Long userId, Long journalId, JournalRequest request) {
-        JournalEntry entry = journalRepository.findByIdAndUserId(journalId, userId).orElseThrow(() ->
-                new RuntimeException("Journal not found for this user"));
+    public List<JournalResponse> searchEntries(Long userId, String keyword) {
+        return journalRepository.searchByTitle(userId, keyword)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    public JournalResponse updateEntry(Long userId, Long journalId, JournalRequest request) {
+        if (userId == null) {
+            throw new BadRequestException("User ID must not be null");
+        }
+        if (journalId == null) {
+            throw new BadRequestException("Journal ID must not be null");
+        }
+        if (request == null) {
+            throw new BadRequestException("Request body must not be null");
+        }
+        if (request.getTitle() == null || request.getTitle().isBlank()) {
+            throw new BadRequestException("Title must not be blank!!!!!!!");
+        }
+        if (request.getContent() == null || request.getContent().isBlank()) {
+            throw new BadRequestException("Content must not be blank");
+        }
+        JournalEntry entry = journalRepository.findByIdAndUserId(journalId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Journal not found for this user"));
 
         entry.setTitle(request.getTitle());
         entry.setContent(request.getContent());
 
-        return journalRepository.save(entry);
+        JournalEntry updatedEntry = journalRepository.save(entry);
+        return mapToResponse(updatedEntry);
     }
 
     public void deleteEntry(Long userId, Long journalId) {
-        JournalEntry entry = journalRepository.findByIdAndUserId(journalId, userId).orElseThrow(() ->
-                new RuntimeException("Journal not found for this user"));
+        if (userId == null) {
+            throw new BadRequestException("User ID must not be null");
+        }
+        if (journalId == null) {
+            throw new BadRequestException("Journal ID must not be null");
+        }
+        JournalEntry entry = journalRepository.findByIdAndUserId(journalId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Journal not found for this user"));
 
         journalRepository.delete(entry);
+    }
+
+    private JournalResponse mapToResponse(JournalEntry entry){
+        return new JournalResponse(
+                entry.getId(), entry.getTitle(),
+                entry.getContent(), entry.getCreatedAt(),
+                entry.getUser().getId(),
+                entry.getUser().getUsername()
+        );
     }
 }
