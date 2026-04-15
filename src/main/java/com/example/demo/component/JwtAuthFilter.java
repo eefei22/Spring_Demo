@@ -1,4 +1,4 @@
-package com.example.demo.filter;
+package com.example.demo.component;
 
 import com.example.demo.service.JwtService;
 import com.example.demo.service.UserService;

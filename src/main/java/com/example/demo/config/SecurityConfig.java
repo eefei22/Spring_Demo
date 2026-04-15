@@ -1,6 +1,6 @@
 package com.example.demo.config;
 
-import com.example.demo.filter.JwtAuthFilter;
+import com.example.demo.component.JwtAuthFilter;
 import com.example.demo.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,6 +56,13 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+    /*
+     1. receives username + password
+     2. passes them to AuthenticationProvider
+     3. provider calls UserService
+     4. compares password using BCrypt
+     5. returns success or throws error
+     */
 
     @Bean
     public PasswordEncoder passwordEncoder() {
