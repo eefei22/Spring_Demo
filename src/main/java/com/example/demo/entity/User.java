@@ -20,6 +20,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    private String role;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<JournalEntry> journals = new ArrayList<>();
@@ -30,6 +33,7 @@ public class User {
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+        this.role = "ROLE_USER";
     }
 
     public Long getId() {
@@ -49,6 +53,12 @@ public class User {
     }
     public void setPassword(String password) {
         this.password = password;
+    }
+    public String getRole() {
+        return role;
+    }
+    public void setRole(String role) {
+        this.role = role;
     }
     public List<JournalEntry> getJournals() {
         return journals;

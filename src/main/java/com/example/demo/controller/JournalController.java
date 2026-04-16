@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.JournalRequest;
-import com.example.demo.entity.JournalEntry;
+import com.example.demo.dto.JournalResponse;
 import com.example.demo.service.JournalService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,33 +20,40 @@ public class JournalController {
     }
 
     @PostMapping
-    public JournalEntry createJournal(@PathVariable Long userId,
-                                      @RequestBody JournalRequest request) {
-        return journalService.createEntry(userId, request);
+    public ResponseEntity<JournalResponse> createJournal(@PathVariable Long userId,
+                                                        @RequestBody JournalRequest request) {
+        JournalResponse created = journalService.createEntry(userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @GetMapping
-    public List<JournalEntry> getAllJournals(@PathVariable Long userId) {
-        return journalService.getAllEntriesByUser(userId);
+    public ResponseEntity<List<JournalResponse>> getAllJournals(@PathVariable Long userId) {
+        return ResponseEntity.ok(journalService.getAllEntriesByUser(userId));
     }
 
     @GetMapping("/{journalId}")
-    public JournalEntry getJournalById(@PathVariable Long userId,
-                                       @PathVariable Long journalId) {
-        return journalService.getEntryById(userId, journalId);
+    public ResponseEntity<JournalResponse> getJournalById(@PathVariable Long userId,
+                                                         @PathVariable Long journalId) {
+        return ResponseEntity.ok(journalService.getEntryById(userId, journalId));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<JournalResponse>> searchJournals(@PathVariable Long userId,
+                                                                @RequestParam String keyword) {
+        return ResponseEntity.ok(journalService.searchEntries(userId, keyword));
     }
 
     @PutMapping("/{journalId}")
-    public JournalEntry updateJournal(@PathVariable Long userId,
-                                      @PathVariable Long journalId,
-                                      @RequestBody JournalRequest request) {
-        return journalService.updateEntry(userId, journalId, request);
+    public ResponseEntity<JournalResponse> updateJournal(@PathVariable Long userId,
+                                                        @PathVariable Long journalId,
+                                                        @RequestBody JournalRequest request) {
+        return ResponseEntity.ok(journalService.updateEntry(userId, journalId, request));
     }
 
     @DeleteMapping("/{journalId}")
-    public String deleteJournal(@PathVariable Long userId,
-                                @PathVariable Long journalId) {
+    public ResponseEntity<Void> deleteJournal(@PathVariable Long userId,
+                                             @PathVariable Long journalId) {
         journalService.deleteEntry(userId, journalId);
-        return "Journal deleted successfully";
+        return ResponseEntity.noContent().build();
     }
 }
